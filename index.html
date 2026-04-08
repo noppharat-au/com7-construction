@@ -899,7 +899,10 @@ body::before {
     <!-- STEP 1: เลือก Project -->
     <div id="sectionProject">
       <div class="page-header">
-        <h1>เลือก Project</h1>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <h1>เลือก Project</h1>
+          <button class="btn btn-sm btn-secondary" id="btnCreateProject" onclick="showCreateProject()" style="display:none">+ สร้าง Project</button>
+        </div>
         <p>แสดงเฉพาะ Project ที่คุณรับผิดชอบ</p>
       </div>
       <div class="project-grid" id="projectGrid">
@@ -907,6 +910,59 @@ body::before {
           <div class="empty-icon">🔍</div>
           <div class="empty-title">กำลังโหลด Project...</div>
         </div>
+      </div>
+    </div>
+
+    <!-- MODAL: สร้าง Project ใหม่ -->
+    <div id="modalCreateProject" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;align-items:center;justify-content:center">
+      <div style="background:var(--navy-mid);border:1px solid var(--border-strong);border-radius:14px;padding:28px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h2 style="font-size:17px;font-weight:600;color:var(--white)">สร้าง Project ใหม่</h2>
+          <button class="btn btn-sm btn-danger" onclick="hideCreateProject()">✕</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ชื่อสาขา *</label>
+          <input type="text" class="form-input" id="cp_name" placeholder="เช่น สาขา Central Rama 9">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ที่ตั้ง</label>
+          <input type="text" class="form-input" id="cp_location" placeholder="เช่น กรุงเทพฯ">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ห้างสรรพสินค้า</label>
+          <input type="text" class="form-input" id="cp_mall" placeholder="เช่น Central Rama 9">
+        </div>
+        <div class="form-group">
+          <label class="form-label">จังหวัด</label>
+          <input type="text" class="form-input" id="cp_province" placeholder="เช่น กรุงเทพมหานคร">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PM Username</label>
+          <input type="text" class="form-input" id="cp_pm" placeholder="เช่น jo, dul, sonk">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Main Contractor ID</label>
+          <input type="text" class="form-input" id="cp_main" placeholder="เช่น kn, pangmai, lainamm">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sub Contractor ID</label>
+          <input type="text" class="form-input" id="cp_sub" placeholder="เช่น ricco, pemco (ถ้ามี)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">วันเริ่มงาน</label>
+            <input type="date" class="form-input" id="cp_start">
+          </div>
+          <div class="form-group">
+            <label class="form-label">กำหนดเสร็จ</label>
+            <input type="date" class="form-input" id="cp_end">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">งบประมาณ (บาท)</label>
+          <input type="number" class="form-input" id="cp_budget" placeholder="0">
+        </div>
+        <button class="btn btn-primary" onclick="doCreateProject()" style="margin-top:8px">✔ สร้าง Project</button>
       </div>
     </div>
 
@@ -1216,16 +1272,62 @@ function doLogout() {
    MAIN APP INIT
 ════════════════════════════════════════════════════════ */
 function initMainApp() {
-  // Update user chip
   const initials = currentUser.name.substring(0, 2);
   document.getElementById('userAvatar').textContent = initials;
   document.getElementById('userName').textContent = currentUser.name;
   document.getElementById('userRole').textContent = currentUser.role;
 
+  // แสดงปุ่มสร้าง Project เฉพาะ PM และ ADMIN
+  const btnCreate = document.getElementById('btnCreateProject');
+  if (btnCreate && ['PM','ADMIN','PROPERTY'].includes(currentUser.role)) {
+    btnCreate.style.display = '';
+  }
+
   showScreen('mainScreen');
   document.getElementById('sectionProject').style.display = '';
   document.getElementById('sectionProgress').style.display = 'none';
   loadProjects();
+}
+
+function showCreateProject() {
+  const modal = document.getElementById('modalCreateProject');
+  modal.style.display = 'flex';
+}
+
+function hideCreateProject() {
+  document.getElementById('modalCreateProject').style.display = 'none';
+}
+
+async function doCreateProject() {
+  const name = document.getElementById('cp_name').value.trim();
+  if (!name) { toast('กรุณาใส่ชื่อสาขา', 'error'); return; }
+
+  showLoading('กำลังสร้าง Project...');
+  try {
+    const res = await callGAS_read('createProject', {
+      token: currentUser.token,
+      projectData: {
+        name,
+        location: document.getElementById('cp_location').value.trim(),
+        mall: document.getElementById('cp_mall').value.trim(),
+        province: document.getElementById('cp_province').value.trim(),
+        pmUsername: document.getElementById('cp_pm').value.trim(),
+        mainContractorId: document.getElementById('cp_main').value.trim(),
+        subContractorId: document.getElementById('cp_sub').value.trim(),
+        startDate: document.getElementById('cp_start').value,
+        endDatePlan: document.getElementById('cp_end').value,
+        budget: document.getElementById('cp_budget').value || 0
+      }
+    });
+    if (!res.ok) throw new Error(res.message);
+    toast(`✅ สร้าง Project "${name}" สำเร็จ (${res.projectId})`, 'success');
+    hideCreateProject();
+    loadProjects(); // refresh list
+  } catch(e) {
+    toast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1605,8 +1707,20 @@ function collectStepValues(step) {
 async function saveStepDraft(stepId) {
   const step = WORK_STEPS.find(s => s.id === stepId);
   const vals = collectStepValues(step);
-  stepData[stepId] = { ...vals };
-  toast('บันทึกร่างแล้ว', 'success');
+  stepData[stepId] = { ...(stepData[stepId] || {}), ...vals };
+  // บันทึกร่างลง GAS ด้วย
+  try {
+    await callGAS_read('submitStep', {
+      token: currentUser.token,
+      projectId: currentProject.id,
+      stepId,
+      fields: { ...vals, _draft: 'true' },
+      imageCount: 0, pdfCount: 0
+    });
+    toast('บันทึกร่างแล้ว ✓', 'success');
+  } catch(e) {
+    toast('บันทึกร่างในเครื่องแล้ว (ยังไม่ sync)', 'info');
+  }
 }
 
 async function submitStep(stepId) {
@@ -1618,9 +1732,6 @@ async function submitStep(stepId) {
   showLoading('กำลังบันทึก...');
 
   try {
-    let imageUrls = images.map((_, i) => `pending_image_${i+1}`);
-    let pdfUrls = pdfs.map(p => `pending_pdf_${p.name}`);
-
     // Collect sub items
     if (stepId === 'quotation_sub') {
       const items = (stepData['quotation_sub'] || {})._subItems || [];
@@ -1633,48 +1744,55 @@ async function submitStep(stepId) {
       vals._subItems = JSON.stringify(items);
     }
 
-    // Step 1: บันทึก fields ผ่าน JSONP
-    const payload = {
+    // บันทึก fields ผ่าน JSONP
+    const res = await callGAS_read('submitStep', {
       token: currentUser.token,
       projectId: currentProject.id,
       stepId,
       fields: vals,
       imageCount: images.length,
-      pdfCount: pdfs.length,
-      timestamp: new Date().toISOString(),
-      submittedBy: currentUser.name
-    };
-
-    const res = await callGAS('submitStep', payload);
+      pdfCount: pdfs.length
+    });
     if (!res.ok) throw new Error(res.message || 'บันทึกไม่สำเร็จ');
 
-    // Step 2: Upload ไฟล์ (ถ้ามี) — upload ทีละไฟล์ผ่าน JSONP
-    if (images.length > 0) {
-      for (let i = 0; i < images.length; i++) {
-        document.getElementById('loadingText').textContent = `อัปโหลดรูป ${i+1}/${images.length}...`;
-        try {
-          const b64 = await fileToBase64(images[i].file);
-          const r = await callGAS('uploadImage', {
-            token: currentUser.token, projectId: currentProject.id,
-            stepId, filename: images[i].file.name, mimeType: images[i].file.type, data: b64
-          });
-          if (r.ok) imageUrls[i] = r.url;
-        } catch(e) { /* ข้ามไฟล์ที่ error */ }
-      }
+    let imageUrls = [];
+    let pdfUrls = [];
+
+    // Upload รูป — แบ่งส่งทีละไฟล์ผ่าน JSONP (base64 chunk)
+    for (let i = 0; i < images.length; i++) {
+      document.getElementById('loadingText').textContent = `อัปโหลดรูป ${i+1}/${images.length}...`;
+      try {
+        const b64 = await fileToBase64(images[i].file);
+        // ถ้ารูปใหญ่เกิน 500KB ข้ามไปก่อน แจ้ง user
+        if (b64.length > 700000) {
+          toast(`รูป "${images[i].file.name}" ใหญ่เกิน ข้ามไปก่อน`, 'info');
+          continue;
+        }
+        const r = await callGAS_read('uploadImage', {
+          token: currentUser.token, projectId: currentProject.id,
+          stepId, filename: images[i].file.name,
+          mimeType: images[i].file.type, data: b64
+        });
+        if (r.ok) imageUrls.push(r.url);
+      } catch(e) { toast(`อัปโหลดรูปไม่สำเร็จ: ${images[i].file.name}`, 'error'); }
     }
 
-    if (pdfs.length > 0) {
-      for (let i = 0; i < pdfs.length; i++) {
-        document.getElementById('loadingText').textContent = `อัปโหลด PDF ${i+1}/${pdfs.length}...`;
-        try {
-          const b64 = await fileToBase64(pdfs[i].file);
-          const r = await callGAS('uploadPdf', {
-            token: currentUser.token, projectId: currentProject.id,
-            stepId, filename: pdfs[i].name, mimeType: 'application/pdf', data: b64
-          });
-          if (r.ok) pdfUrls[i] = r.url;
-        } catch(e) { /* ข้ามไฟล์ที่ error */ }
-      }
+    // Upload PDF
+    for (let i = 0; i < pdfs.length; i++) {
+      document.getElementById('loadingText').textContent = `อัปโหลด PDF ${i+1}/${pdfs.length}...`;
+      try {
+        const b64 = await fileToBase64(pdfs[i].file);
+        if (b64.length > 700000) {
+          toast(`PDF "${pdfs[i].name}" ใหญ่เกิน ข้ามไปก่อน`, 'info');
+          continue;
+        }
+        const r = await callGAS_read('uploadPdf', {
+          token: currentUser.token, projectId: currentProject.id,
+          stepId, filename: pdfs[i].name,
+          mimeType: 'application/pdf', data: b64
+        });
+        if (r.ok) pdfUrls.push(r.url);
+      } catch(e) { toast(`อัปโหลด PDF ไม่สำเร็จ: ${pdfs[i].name}`, 'error'); }
     }
 
     stepData[stepId] = { ...vals, _done: true, imageUrls, pdfUrls };
