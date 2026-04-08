@@ -774,6 +774,39 @@ body::before {
 }
 .pdf-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
+.upload-btn-zone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+.upload-btn-zone:hover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.06);
+}
+.upload-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.upload-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(46,204,113,0.06);
+  border: 1px solid rgba(46,204,113,0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
 .pdf-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 
 .sub-items-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
@@ -1491,35 +1524,106 @@ function renderStepFields(step, data) {
 
 function renderUploadZone(stepId) {
   const step = WORK_STEPS.find(s => s.id === stepId);
+  const data = stepData[stepId] || {};
 
-  // Step 5 — Free-form sub quotation (PM กรอกหัวข้อ)
+  // Step 5 Free-form sub
   const freeformSection = step && step.hasFreeformSub ? renderFreeformSub(stepId) : '';
 
-  // Multi-PDF upload (steps 2,3,4,5,7,8)
+  // PDF section
   const pdfSection = step && step.hasMultiPdf ? `
   <div class="field-group" style="margin-top:14px">
     <label class="field-label">${step.pdfLabel || 'ไฟล์ PDF'}</label>
-    <div class="upload-zone upload-zone-pdf">
-      <input type="file" accept="application/pdf" multiple onchange="handleMultiPdf('${stepId}', this)">
-      <div class="upload-icon">📄</div>
-      <div class="upload-text">คลิกหรือลาก<br><strong>เพิ่ม PDF ได้ไม่จำกัด</strong></div>
+    <div class="upload-btn-zone" onclick="openUploader('${stepId}','pdf')">
+      <span style="font-size:20px">📄</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--white)">แนบ PDF</div>
+        <div style="font-size:11px;color:var(--muted)">ไม่จำกัดขนาด · เปิดหน้าต่างใหม่</div>
+      </div>
+      <span style="margin-left:auto;font-size:12px;color:var(--gold)">เปิด →</span>
     </div>
-    <div class="pdf-list" id="pdfList_${stepId}"></div>
+    <div class="upload-file-list" id="pdfDone_${stepId}">
+      ${(data.pdfUrls||[]).filter(u=>u&&!u.startsWith('pending')).map(u=>`
+        <div class="upload-file-item">
+          <span>📄</span>
+          <a href="${u}" target="_blank" style="color:var(--gold);font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ดูไฟล์ PDF</a>
+        </div>`).join('')}
+    </div>
   </div>` : '';
+
+  // Image section
+  const imgDoneHtml = (data.imageUrls||[]).filter(u=>u&&!u.startsWith('pending')).map(u=>`
+    <div class="upload-file-item">
+      <span>🖼</span>
+      <a href="${u}" target="_blank" style="color:var(--gold);font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ดูรูปภาพ</a>
+    </div>`).join('');
 
   return `
   ${freeformSection}
   ${pdfSection}
   <div class="field-group" style="margin-top:14px">
     <label class="field-label">รูปภาพประกอบ</label>
-    <div class="upload-zone" id="zone_${stepId}">
-      <input type="file" accept="image/*" multiple onchange="handleImages('${stepId}', this)">
-      <div class="upload-icon">📷</div>
-      <div class="upload-text">คลิกหรือลาก<br><strong>เพิ่มรูปได้ไม่จำกัด</strong></div>
+    <div class="upload-btn-zone" onclick="openUploader('${stepId}','image')">
+      <span style="font-size:20px">📷</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--white)">แนบรูปภาพ</div>
+        <div style="font-size:11px;color:var(--muted)">ไม่จำกัดขนาด/จำนวน · เปิดหน้าต่างใหม่</div>
+      </div>
+      <span style="margin-left:auto;font-size:12px;color:var(--gold)">เปิด →</span>
     </div>
-    <div class="preview-grid" id="preview_${stepId}"></div>
+    <div class="upload-file-list" id="imgDone_${stepId}">${imgDoneHtml}</div>
   </div>`;
 }
+
+function openUploader(stepId, fileType) {
+  if (!currentProject || !currentUser) return;
+  const url = GAS_URL
+    + '?mode=upload'
+    + '&projectId=' + encodeURIComponent(currentProject.id)
+    + '&stepId=' + encodeURIComponent(stepId)
+    + '&token=' + encodeURIComponent(currentUser.token)
+    + '&fileType=' + fileType;
+  const w = window.open(url, 'uploader_' + stepId, 'width=420,height=600,left=200,top=100');
+  if (!w) toast('กรุณาอนุญาต popup ในเบราว์เซอร์', 'error');
+}
+
+// รับ URLs กลับจาก popup
+window.addEventListener('message', (e) => {
+  if (!e.data || e.data.type !== 'uploadDone') return;
+  const { stepId, urls } = e.data;
+  if (!stepId || !urls || !urls.length) return;
+
+  if (!stepData[stepId]) stepData[stepId] = {};
+
+  // แยก PDF กับรูป
+  const imgUrls = urls.filter(u => !u.includes('.pdf') && !u.includes('pdf'));
+  const pdfUrls = urls.filter(u => u.includes('.pdf') || u.includes('pdf'));
+
+  // เพิ่มเข้า stepData
+  if (imgUrls.length) {
+    stepData[stepId].imageUrls = [...(stepData[stepId].imageUrls||[]), ...imgUrls];
+    const imgContainer = document.getElementById(`imgDone_${stepId}`);
+    if (imgContainer) {
+      imgContainer.innerHTML += imgUrls.map(u=>`
+        <div class="upload-file-item">
+          <span>🖼</span>
+          <a href="${u}" target="_blank" style="color:var(--gold);font-size:12px;flex:1">ดูรูปภาพ</a>
+        </div>`).join('');
+    }
+  }
+  if (pdfUrls.length) {
+    stepData[stepId].pdfUrls = [...(stepData[stepId].pdfUrls||[]), ...pdfUrls];
+    const pdfContainer = document.getElementById(`pdfDone_${stepId}`);
+    if (pdfContainer) {
+      pdfContainer.innerHTML += pdfUrls.map(u=>`
+        <div class="upload-file-item">
+          <span>📄</span>
+          <a href="${u}" target="_blank" style="color:var(--gold);font-size:12px;flex:1">ดูไฟล์ PDF</a>
+        </div>`).join('');
+    }
+  }
+
+  toast(`✅ อัปโหลด ${urls.length} ไฟล์สำเร็จ เข้า Drive แล้ว`, 'success');
+});
 
 // ── Step 5 Free-form: PM เพิ่มหัวข้อประเภทงาน Sub ──────────
 function renderFreeformSub(stepId) {
