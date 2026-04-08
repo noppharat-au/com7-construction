@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction Progress — Com7</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0a1628;
+  --navy-mid: #112240;
+  --navy-light: #1a3356;
+  --gold: #c9a84c;
+  --gold-light: #e8c97e;
+  --gold-dim: #8a6d2a;
+  --white: #f5f0e8;
+  --muted: #8899aa;
+  --border: rgba(201,168,76,0.18);
+  --border-strong: rgba(201,168,76,0.4);
+  --success: #2ecc71;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --info: #3498db;
+  --radius: 10px;
+  --font: 'Sarabun', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+/* ── GAS URL — แก้ตรงนี้จุดเดียว ── */
+/* window.GAS_URL = "https://script.google.com/macros/s/YOUR_GAS_ID/exec" */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════
+   BACKGROUND TEXTURE
+═══════════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(201,168,76,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 80%, rgba(26,51,86,0.8) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════
+   SCREENS
+═══════════════════════════════════ */
+.screen { display: none; position: relative; z-index: 1; min-height: 100vh; }
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════
+   LOGIN SCREEN
+═══════════════════════════════════ */
+#loginScreen {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--navy-mid);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+}
+
+.logo-area {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.logo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(201,168,76,0.1);
+  border: 1px solid var(--border-strong);
+  border-radius: 40px;
+  padding: 10px 20px;
+  margin-bottom: 16px;
+}
+
+.logo-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
+}
+
+.logo-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.login-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+  letter-spacing: 0.03em;
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.05);
+}
+
+.form-input::placeholder { color: var(--muted); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--navy);
+  width: 100%;
+}
+
+.btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: rgba(255,255,255,0.06);
+  color: var(--white);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+.btn-danger {
+  background: rgba(231,76,60,0.15);
+  color: #e74c3c;
+  border: 1px solid rgba(231,76,60,0.3);
+}
+
+.btn-danger:hover { background: rgba(231,76,60,0.25); }
+
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+
+.login-error {
+  background: rgba(231,76,60,0.1);
+  border: 1px solid rgba(231,76,60,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #e74c3c;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* ═══════════════════════════════════
+   MAIN APP
+═══════════════════════════════════ */
+#mainScreen { flex-direction: column; }
+
+/* TOP BAR */
+.topbar {
+  background: var(--navy-mid);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-logo {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+
+.topbar-divider {
+  width: 1px; height: 20px;
+  background: var(--border);
+}
+
+.topbar-title {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 14px;
+}
+
+.user-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-name { font-size: 13px; color: var(--white); }
+.user-role {
+  font-size: 11px;
+  color: var(--gold);
+  font-family: var(--mono);
+  background: rgba(201,168,76,0.1);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* CONTENT */
+.app-content {
+  padding: 28px 24px;
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.page-header p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* SECTION CARD */
+.card {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(201,168,76,0.12);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.card-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* PROJECT SELECT */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.project-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.project-card:hover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.06);
+  transform: translateY(-2px);
+}
+
+.project-card.selected {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.1);
+}
+
+.project-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.project-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.project-location {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+/* STATUS COLORS */
+.s-design { background: rgba(52,152,219,0.15); color: #3498db; }
+.s-approve { background: rgba(243,156,18,0.15); color: #f39c12; }
+.s-waiting { background: rgba(155,89,182,0.15); color: #9b59b6; }
+.s-construct { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.s-done { background: rgba(46,204,113,0.2); color: #2ecc71; }
+
+/* ═══════════════════════════════════
+   WORK STEPS
+═══════════════════════════════════ */
+.steps-container { display: flex; flex-direction: column; gap: 12px; }
+
+.step-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.step-item.completed {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.step-item.completed .step-header {
+  background: rgba(46,204,113,0.05);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.1);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.step-item.completed .step-num {
+  background: rgba(46,204,113,0.15);
+  border-color: rgba(46,204,113,0.3);
+  color: var(--success);
+}
+
+.step-info { flex: 1; }
+
+.step-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.step-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.step-status-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.step-toggle {
+  font-size: 18px;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+
+.step-item.open .step-toggle { transform: rotate(180deg); }
+
+.step-body {
+  display: none;
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.step-item.open .step-body { display: block; padding-top: 16px; }
+
+/* FORM INSIDE STEP */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.field-row.full { grid-template-columns: 1fr; }
+
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 12px; color: var(--gold-light); font-weight: 500; }
+.field-note { font-size: 11px; color: var(--muted); }
+
+.field-input, .field-select, .field-textarea {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.field-input:focus, .field-select:focus, .field-textarea:focus {
+  border-color: var(--gold);
+}
+
+.field-textarea { resize: vertical; min-height: 80px; }
+
+.field-select { cursor: pointer; }
+.field-select option { background: var(--navy-mid); color: var(--white); }
+
+/* IMAGE UPLOAD */
+.upload-zone {
+  border: 2px dashed var(--border-strong);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.upload-zone:hover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.04);
+}
+
+.upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.upload-icon { font-size: 28px; margin-bottom: 8px; }
+.upload-text { font-size: 13px; color: var(--muted); }
+.upload-text strong { color: var(--gold); }
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.preview-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.preview-remove {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 20px; height: 20px;
+  background: rgba(231,76,60,0.85);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* SUBMIT STEP BTN */
+.step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.completed-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--success);
+  padding: 10px 16px;
+}
+
+/* ═══════════════════════════════════
+   PROGRESS BAR
+═══════════════════════════════════ */
+.progress-overview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+.progress-label { font-size: 13px; color: var(--muted); min-width: 80px; }
+
+.progress-bar-wrap {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border-radius: 20px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  border-radius: 20px;
+  transition: width 0.5s ease;
+}
+
+.progress-pct {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--gold);
+  font-weight: 500;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ═══════════════════════════════════
+   TOAST
+═══════════════════════════════════ */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: var(--white);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  animation: slideIn 0.3s ease;
+  transition: opacity 0.3s;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast.success { border-color: rgba(46,204,113,0.4); }
+.toast.error { border-color: rgba(231,76,60,0.4); }
+.toast-icon { font-size: 18px; }
+
+/* LOADING OVERLAY */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,22,40,0.75);
+  z-index: 9998;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.loading-overlay.active { display: flex; }
+
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(201,168,76,0.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text { font-size: 14px; color: var(--muted); }
+
+/* ═══════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════ */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--muted);
+}
+
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 600; color: var(--white); margin-bottom: 6px; }
+.empty-text { font-size: 13px; }
+
+.upload-zone-pdf {
+  border-color: rgba(52,152,219,0.4);
+}
+.upload-zone-pdf:hover {
+  border-color: #3498db;
+  background: rgba(52,152,219,0.04);
+}
+.pdf-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(52,152,219,0.08);
+  border: 1px solid rgba(52,152,219,0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 10px;
+}
+.pdf-icon { font-size: 22px; flex-shrink: 0; }
+.pdf-info { flex: 1; min-width: 0; }
+.pdf-name {
+  font-size: 13px;
+  color: var(--white);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pdf-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.pdf-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+.sub-items-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+
+.sub-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.sub-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sub-item-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.15);
+  color: var(--gold);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sub-item-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════ */
+@media (max-width: 600px) {
+  .login-card { padding: 32px 24px; }
+  .app-content { padding: 16px; }
+  .field-row { grid-template-columns: 1fr; }
+  .topbar { padding: 0 16px; }
+  .topbar-title { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOADING OVERLAY
+══════════════════════════════════════ -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">กำลังโหลด...</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TOAST CONTAINER
+══════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<div class="screen active" id="loginScreen">
+  <div class="login-card">
+    <div class="logo-area">
+      <div class="logo-badge">
+        <div class="logo-dot"></div>
+        <span class="logo-text">COM7 · CONSTRUCTION</span>
+      </div>
+      <div class="login-title">บันทึก Progress งาน</div>
+      <div class="login-subtitle">ระบบรายงานความคืบหน้าก่อสร้างสาขา</div>
+    </div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <div class="form-group">
+      <label class="form-label">ชื่อผู้ใช้</label>
+      <input type="text" class="form-input" id="loginUsername" placeholder="กรอก username" autocomplete="username">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">รหัสผ่าน</label>
+      <input type="password" class="form-input" id="loginPassword" placeholder="กรอก password" autocomplete="current-password">
+    </div>
+
+    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">
+      <span>เข้าสู่ระบบ</span>
+      <span>→</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP SCREEN
+══════════════════════════════════════ -->
+<div class="screen" id="mainScreen">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-logo">COM7</span>
+      <div class="topbar-divider"></div>
+      <span class="topbar-title">ระบบรายงานก่อสร้าง</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">-</div>
+        <span class="user-name" id="userName">-</span>
+        <span class="user-role" id="userRole">-</span>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="doLogout()">ออก</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="app-content">
+
+    <!-- STEP 1: เลือก Project -->
+    <div id="sectionProject">
+      <div class="page-header">
+        <h1>เลือก Project</h1>
+        <p>แสดงเฉพาะ Project ที่คุณรับผิดชอบ</p>
+      </div>
+      <div class="project-grid" id="projectGrid">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">กำลังโหลด Project...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: กรอก Progress -->
+    <div id="sectionProgress" style="display:none">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <button class="btn btn-sm btn-secondary" onclick="backToProjects()">← กลับ</button>
+          <div>
+            <h1 id="progressProjectName">-</h1>
+            <p id="progressProjectMeta">-</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROGRESS BAR -->
+      <div class="progress-overview">
+        <div class="progress-label">ความคืบหน้า</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progressBarFill" style="width:0%"></div>
+        </div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+
+      <!-- WORK STEPS -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <div>
+            <div class="card-title">ขั้นตอนงาน</div>
+            <div class="card-sub">หัวข้อที่กรอกแล้วจะถูกซ่อน</div>
+          </div>
+        </div>
+        <div class="steps-container" id="stepsContainer">
+          <!-- Steps rendered here -->
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /app-content -->
+</div><!-- /mainScreen -->
+
+<script>
+/* ════════════════════════════════════════════════════════
+   CONFIG — แก้ GAS_URL ตรงนี้
+════════════════════════════════════════════════════════ */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxyMPizddvv8dohXnPm1drXRkjIZRx8OrkBFysLxiqIf1GVmIRByhWg-gHn_e5u_YNMJQ/exec";
+
+/* ════════════════════════════════════════════════════════
+   WORK STEPS DEFINITION (ปรับได้ตามต้องการ)
+════════════════════════════════════════════════════════ */
+const WORK_STEPS = [
+  {
+    id: "survey",
+    name: "1. สำรวจพื้นที่และวัดขนาด",
+    desc: "PM สำรวจหน้างาน",
+    fields: [
+      { key: "survey_date", label: "วันที่สำรวจ", type: "date" },
+      { key: "area_size", label: "ขนาดพื้นที่ (ตร.ม.)", type: "number", placeholder: "เช่น 150" },
+      { key: "survey_note", label: "หมายเหตุ / ปัญหาที่พบ", type: "textarea", full: true }
+    ],
+    hasPdfUpload: false, hasMultiPdf: false,
+    role: ["PM","ADMIN"]
+  },
+  {
+    id: "design",
+    name: "2. ออกแบบและจัดทำแบบ",
+    desc: "ออกแบบ layout + รายการวัสดุ",
+    fields: [
+      { key: "design_date", label: "วันที่ส่งแบบ", type: "date" },
+      { key: "designer", label: "ผู้ออกแบบ / บริษัท", type: "text", placeholder: "ชื่อผู้ออกแบบ" },
+      { key: "design_version", label: "Version แบบ", type: "text", placeholder: "เช่น Rev.1" },
+      { key: "design_note", label: "หมายเหตุแบบ", type: "textarea", full: true }
+    ],
+    hasMultiPdf: true, pdfLabel: "ไฟล์แบบ (PDF)",
+    role: ["PM","ADMIN"]
+  },
+  {
+    id: "approve",
+    name: "3. อนุมัติแบบ",
+    desc: "PM อนุมัติแบบก่อนก่อสร้าง",
+    fields: [
+      { key: "approve_date", label: "วันที่อนุมัติ", type: "date" },
+      { key: "approve_by", label: "อนุมัติโดย", type: "text", placeholder: "ชื่อผู้อนุมัติ" },
+      { key: "approve_note", label: "เงื่อนไข / หมายเหตุ", type: "textarea", full: true }
+    ],
+    hasMultiPdf: true, pdfLabel: "เอกสารอนุมัติ (PDF)",
+    role: ["PM","ADMIN"]
+  },
+  {
+    id: "quotation_main",
+    name: "4. ใบเสนอราคา Main Contractor",
+    desc: "Main Contractor ส่งใบเสนอราคา",
+    fields: [
+      { key: "q_main_date", label: "วันที่ส่งใบเสนอ", type: "date" },
+      { key: "q_main_amount", label: "มูลค่างาน (บาท)", type: "number", placeholder: "0.00" },
+      { key: "q_main_note", label: "รายละเอียดงาน", type: "textarea", full: true }
+    ],
+    hasMultiPdf: true, pdfLabel: "ใบเสนอราคา (PDF)",
+    role: ["MAIN_CONTRACTOR","PM","ADMIN"]
+  },
+  {
+    id: "quotation_sub",
+    name: "5. ใบเสนอราคา Sub Contractor",
+    desc: "PM กรอกหัวข้อประเภทงาน — Sub แนบ PDF",
+    fields: [],
+    hasFreeformSub: true,
+    hasMultiPdf: true, pdfLabel: "ใบเสนอราคา Sub (PDF)",
+    role: ["SUB_CONTRACTOR","PM","ADMIN"]
+  },
+  {
+    id: "construction",
+    name: "6. ก่อสร้าง / ติดตั้ง",
+    desc: "รายงานความคืบหน้าระหว่างก่อสร้าง",
+    fields: [
+      { key: "construct_start", label: "วันที่เริ่มงานจริง", type: "date" },
+      { key: "construct_pct", label: "ความคืบหน้า (%)", type: "number", placeholder: "0–100" },
+      { key: "issue_found", label: "ปัญหาที่พบ", type: "textarea" },
+      { key: "solution", label: "แนวทางแก้ไข", type: "textarea" }
+    ],
+    hasMultiPdf: false,
+    role: ["MAIN_CONTRACTOR","PM","ADMIN"]
+  },
+  {
+    id: "inspection",
+    name: "7. ตรวจรับงาน",
+    desc: "PM + Main ตรวจสอบงานก่อนส่งมอบ",
+    fields: [
+      { key: "inspect_date", label: "วันที่ตรวจ", type: "date" },
+      { key: "inspect_result", label: "ผลการตรวจ", type: "select",
+        options: ["ผ่าน", "ต้องแก้ไข", "รอตรวจอีกครั้ง"] },
+      { key: "defect_list", label: "รายการที่ต้องแก้ไข", type: "textarea" },
+      { key: "inspect_note", label: "หมายเหตุ", type: "textarea" }
+    ],
+    hasMultiPdf: true, pdfLabel: "เอกสารตรวจรับ (PDF)",
+    role: ["PM","ADMIN","MAIN_CONTRACTOR"]
+  },
+  {
+    id: "complete",
+    name: "8. ปิดโครงการ",
+    desc: "ส่งมอบงาน เบิกงวดสุดท้าย",
+    fields: [
+      { key: "complete_date", label: "วันที่ส่งมอบ", type: "date" },
+      { key: "warranty_end", label: "วันสิ้นสุดประกัน", type: "date" },
+      { key: "final_amount", label: "มูลค่าสุดท้าย (บาท)", type: "number", placeholder: "0.00" },
+      { key: "complete_note", label: "หมายเหตุปิดงาน", type: "textarea", full: true }
+    ],
+    hasMultiPdf: true, pdfLabel: "เอกสารปิดงาน (PDF)",
+    role: ["PM","ADMIN"]
+  }
+];
+
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+let currentUser = null;
+let currentProject = null;
+let stepData = {}; // { stepId: { ...fields, images: [], done: bool } }
+
+/* ════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showLoading(text = 'กำลังโหลด...') {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+function toast(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+async function callGAS(action, payload = {}) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'gasCallback_' + Date.now();
+    const data = encodeURIComponent(JSON.stringify({ action, ...payload }));
+    const script = document.createElement('script');
+    window[cbName] = (result) => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(result);
+    };
+    script.onerror = () => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      reject(new Error('Network error'));
+    };
+    script.src = GAS_URL + '?callback=' + cbName + '&data=' + data;
+    document.body.appendChild(script);
+    setTimeout(() => {
+      if (window[cbName]) {
+        delete window[cbName];
+        try { document.body.removeChild(script); } catch(e) {}
+        reject(new Error('Request timeout'));
+      }
+    }, 30000);
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════════════════ */
+async function doLogin() {
+  const u = document.getElementById('loginUsername').value.trim();
+  const p = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!u || !p) {
+    errEl.textContent = 'กรุณากรอก username และ password';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  showLoading('กำลังตรวจสอบ...');
+  document.getElementById('loginBtn').disabled = true;
+
+  try {
+    // ── DEMO MODE (ถ้า GAS_URL ยังเป็น placeholder) ──
+    if (GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
+      // Demo users
+      const demoUsers = {
+        'pm001': { name: 'คุณสมชาย', role: 'PM', password: '1234' },
+        'mc001': { name: 'บ.รุ่งโรจน์ก่อสร้าง', role: 'MAIN_CONTRACTOR', password: '1234' },
+        'sc001': { name: 'ช่างอนุชิต', role: 'SUB_CONTRACTOR', password: '1234' },
+        'admin': { name: 'Admin', role: 'ADMIN', password: 'admin' }
+      };
+      const found = demoUsers[u];
+      if (!found || found.password !== p) throw new Error('username หรือ password ไม่ถูกต้อง');
+      currentUser = { username: u, name: found.name, role: found.role, token: 'demo_' + u };
+    } else {
+      const res = await callGAS('login', { username: u, password: p });
+      if (!res.ok) throw new Error(res.message || 'เข้าสู่ระบบไม่สำเร็จ');
+      currentUser = res.user;
+      localStorage.setItem('cpToken', res.user.token);
+    }
+
+    initMainApp();
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    hideLoading();
+    document.getElementById('loginBtn').disabled = false;
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  currentProject = null;
+  stepData = {};
+  localStorage.removeItem('cpToken');
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  showScreen('loginScreen');
+}
+
+/* ════════════════════════════════════════════════════════
+   MAIN APP INIT
+════════════════════════════════════════════════════════ */
+function initMainApp() {
+  // Update user chip
+  const initials = currentUser.name.substring(0, 2);
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userRole').textContent = currentUser.role;
+
+  showScreen('mainScreen');
+  document.getElementById('sectionProject').style.display = '';
+  document.getElementById('sectionProgress').style.display = 'none';
+  loadProjects();
+}
+
+/* ════════════════════════════════════════════════════════
+   PROJECTS
+════════════════════════════════════════════════════════ */
+async function loadProjects() {
+  const grid = document.getElementById('projectGrid');
+  grid.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 12px"></div><div class="empty-title">กำลังโหลด Project...</div></div>`;
+
+  let projects = [];
+  try {
+    if (GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
+      // Demo projects
+      projects = getDemoProjects(currentUser.role);
+    } else {
+      const res = await callGAS('getProjects', { token: currentUser.token });
+      if (!res.ok) throw new Error(res.message);
+      projects = res.projects;
+    }
+  } catch (e) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">โหลดไม่สำเร็จ</div><div class="empty-text">${e.message}</div></div>`;
+    return;
+  }
+
+  if (!projects.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><div class="empty-title">ไม่มี Project ที่รับผิดชอบ</div></div>`;
+    return;
+  }
+
+  const statusMap = {
+    'ออกแบบ': 's-design',
+    'รออนุมัติแบบ': 's-approve',
+    'รอเข้าก่อสร้าง': 's-waiting',
+    'ก่อสร้าง': 's-construct',
+    'เสร็จ': 's-done'
+  };
+
+  grid.innerHTML = projects.map(p => `
+    <div class="project-card" onclick="selectProject(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="project-id">${p.id}</div>
+      <div class="project-name">${p.name}</div>
+      <div class="project-location">📍 ${p.location}</div>
+      <div class="status-badge ${statusMap[p.status] || ''}">${p.status}</div>
+    </div>
+  `).join('');
+}
+
+function getDemoProjects(role) {
+  const all = [
+    { id: 'PRJ-2025-001', name: 'สาขา Central Rama 9', location: 'กรุงเทพฯ', status: 'ก่อสร้าง', pm: 'pm001', contractor: 'mc001' },
+    { id: 'PRJ-2025-002', name: 'สาขา The Mall Bangkae', location: 'กรุงเทพฯ', status: 'ออกแบบ', pm: 'pm001', contractor: 'mc001' },
+    { id: 'PRJ-2025-003', name: 'สาขา Lotus Chiang Mai', location: 'เชียงใหม่', status: 'รอเข้าก่อสร้าง', pm: 'pm001', contractor: 'mc001' }
+  ];
+  if (role === 'ADMIN' || role === 'PM') return all;
+  return all.filter(p => p.contractor === currentUser.username || true); // Demo: show all for contractor too
+}
+
+function selectProject(project) {
+  currentProject = project;
+  stepData = {};
+  showProgressSection();
+}
+
+function backToProjects() {
+  currentProject = null;
+  document.getElementById('sectionProject').style.display = '';
+  document.getElementById('sectionProgress').style.display = 'none';
+}
+
+/* ════════════════════════════════════════════════════════
+   PROGRESS SECTION
+════════════════════════════════════════════════════════ */
+async function showProgressSection() {
+  document.getElementById('sectionProject').style.display = 'none';
+  document.getElementById('sectionProgress').style.display = '';
+  document.getElementById('progressProjectName').textContent = currentProject.name;
+  document.getElementById('progressProjectMeta').textContent = `${currentProject.id} · ${currentProject.location}`;
+
+  showLoading('โหลดข้อมูล Progress...');
+
+  // Load existing step data
+  try {
+    if (!GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
+      const res = await callGAS('getProgress', { token: currentUser.token, projectId: currentProject.id });
+      if (res.ok && res.steps) stepData = res.steps;
+    }
+  } catch (e) { /* ignore */ }
+
+  hideLoading();
+  renderSteps();
+  updateProgressBar();
+}
+
+function renderSteps() {
+  const container = document.getElementById('stepsContainer');
+  const userRole = currentUser.role;
+
+  const visibleSteps = WORK_STEPS.filter(s => s.role.includes(userRole));
+
+  if (!visibleSteps.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-title">ไม่มีขั้นตอนที่รับผิดชอบ</div></div>`;
+    return;
+  }
+
+  container.innerHTML = visibleSteps.map((step, idx) => {
+    const data = stepData[step.id] || {};
+    const done = !!data._done;
+
+    return `
+    <div class="step-item ${done ? 'completed' : ''}" id="step_${step.id}">
+      <div class="step-header" onclick="toggleStep('${step.id}')">
+        <div class="step-num">${done ? '✓' : (idx + 1)}</div>
+        <div class="step-info">
+          <div class="step-name">${step.name}</div>
+          <div class="step-desc">${step.desc}</div>
+        </div>
+        ${done
+          ? `<span class="status-badge s-done">เสร็จแล้ว</span>`
+          : `<span class="step-toggle">▾</span>`
+        }
+      </div>
+      ${!done ? `
+      <div class="step-body" id="body_${step.id}">
+        ${renderStepFields(step, data)}
+        ${renderUploadZone(step.id)}
+        <div class="step-actions">
+          <button class="btn btn-sm btn-secondary" onclick="saveStepDraft('${step.id}')">บันทึกร่าง</button>
+          <button class="btn btn-sm btn-primary" onclick="submitStep('${step.id}')">✔ บันทึกและปิดหัวข้อนี้</button>
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderStepFields(step, data) {
+  return step.fields.map(f => {
+    const val = data[f.key] || '';
+    const row = f.full ? 'field-row full' : 'field-row';
+
+    if (f.type === 'textarea') {
+      return `<div class="${row}"><div class="field-group">
+        <label class="field-label">${f.label}</label>
+        <textarea class="field-textarea" id="${step.id}_${f.key}" placeholder="${f.placeholder||''}">${val}</textarea>
+      </div></div>`;
+    }
+    if (f.type === 'select') {
+      return `<div class="${row}"><div class="field-group">
+        <label class="field-label">${f.label}</label>
+        <select class="field-select" id="${step.id}_${f.key}">
+          <option value="">-- เลือก --</option>
+          ${f.options.map(o => `<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+      </div></div>`;
+    }
+    return `<div class="field-row"><div class="field-group">
+      <label class="field-label">${f.label}</label>
+      <input type="${f.type}" class="field-input" id="${step.id}_${f.key}"
+        value="${val}" placeholder="${f.placeholder||''}">
+    </div></div>`;
+  }).join('');
+}
+
+function renderUploadZone(stepId) {
+  const step = WORK_STEPS.find(s => s.id === stepId);
+
+  // Step 5 — Free-form sub quotation (PM กรอกหัวข้อ)
+  const freeformSection = step && step.hasFreeformSub ? renderFreeformSub(stepId) : '';
+
+  // Multi-PDF upload (steps 2,3,4,5,7,8)
+  const pdfSection = step && step.hasMultiPdf ? `
+  <div class="field-group" style="margin-top:14px">
+    <label class="field-label">${step.pdfLabel || 'ไฟล์ PDF'}</label>
+    <div class="upload-zone upload-zone-pdf">
+      <input type="file" accept="application/pdf" multiple onchange="handleMultiPdf('${stepId}', this)">
+      <div class="upload-icon">📄</div>
+      <div class="upload-text">คลิกหรือลาก<br><strong>เพิ่ม PDF ได้ไม่จำกัด</strong></div>
+    </div>
+    <div class="pdf-list" id="pdfList_${stepId}"></div>
+  </div>` : '';
+
+  return `
+  ${freeformSection}
+  ${pdfSection}
+  <div class="field-group" style="margin-top:14px">
+    <label class="field-label">รูปภาพประกอบ</label>
+    <div class="upload-zone" id="zone_${stepId}">
+      <input type="file" accept="image/*" multiple onchange="handleImages('${stepId}', this)">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">คลิกหรือลาก<br><strong>เพิ่มรูปได้ไม่จำกัด</strong></div>
+    </div>
+    <div class="preview-grid" id="preview_${stepId}"></div>
+  </div>`;
+}
+
+// ── Step 5 Free-form: PM เพิ่มหัวข้อประเภทงาน Sub ──────────
+function renderFreeformSub(stepId) {
+  const data = stepData[stepId] || {};
+  const items = data._subItems || [];
+  const userRole = currentUser.role;
+  const canAdd = userRole === 'PM' || userRole === 'ADMIN';
+
+  const rows = items.map((item, i) => `
+    <div class="sub-item" id="subItem_${i}">
+      <div class="sub-item-header">
+        <span class="sub-item-num">${i+1}</span>
+        <strong class="sub-item-name">${item.name}</strong>
+        ${canAdd ? `<button class="preview-remove" style="position:static;width:22px;height:22px" onclick="removeSubItem(${i})">✕</button>` : ''}
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">มูลค่า (บาท)</label>
+          <input type="number" class="field-input" id="sub_amount_${i}" value="${item.amount||''}" placeholder="0.00">
+        </div>
+        <div class="field-group">
+          <label class="field-label">หมายเหตุ</label>
+          <input type="text" class="field-input" id="sub_note_${i}" value="${item.note||''}" placeholder="รายละเอียด">
+        </div>
+      </div>
+    </div>`).join('');
+
+  const addBtn = canAdd ? `
+    <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+      <input type="text" class="field-input" id="newSubItemName" placeholder="ชื่อประเภทงาน เช่น พื้น / ประตู / ไฟ" style="flex:1">
+      <button class="btn btn-sm btn-secondary" onclick="addSubItem('${stepId}')">+ เพิ่มหัวข้อ</button>
+    </div>` : '';
+
+  return `
+  <div class="field-group" style="margin-bottom:14px">
+    <label class="field-label">ประเภทงาน Sub Contractor</label>
+    <div class="sub-items-list" id="subItemsList">${rows || '<div style="color:var(--muted);font-size:13px;padding:8px 0">ยังไม่มีหัวข้อ — PM เพิ่มได้ด้านล่าง</div>'}</div>
+    ${addBtn}
+  </div>`;
+}
+
+function addSubItem(stepId) {
+  const nameEl = document.getElementById('newSubItemName');
+  const name = nameEl.value.trim();
+  if (!name) { toast('กรุณาใส่ชื่อประเภทงาน', 'error'); return; }
+  if (!stepData[stepId]) stepData[stepId] = {};
+  if (!stepData[stepId]._subItems) stepData[stepId]._subItems = [];
+  stepData[stepId]._subItems.push({ name, amount: '', note: '' });
+  nameEl.value = '';
+  // Re-render only freeform section
+  const container = document.getElementById('subItemsList');
+  const items = stepData[stepId]._subItems;
+  container.innerHTML = items.map((item, i) => `
+    <div class="sub-item" id="subItem_${i}">
+      <div class="sub-item-header">
+        <span class="sub-item-num">${i+1}</span>
+        <strong class="sub-item-name">${item.name}</strong>
+        <button class="preview-remove" style="position:static;width:22px;height:22px" onclick="removeSubItem(${i})">✕</button>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">มูลค่า (บาท)</label>
+          <input type="number" class="field-input" id="sub_amount_${i}" value="${item.amount||''}" placeholder="0.00">
+        </div>
+        <div class="field-group">
+          <label class="field-label">หมายเหตุ</label>
+          <input type="text" class="field-input" id="sub_note_${i}" value="${item.note||''}" placeholder="รายละเอียด">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function removeSubItem(idx) {
+  const stepId = 'quotation_sub';
+  if (!stepData[stepId] || !stepData[stepId]._subItems) return;
+  stepData[stepId]._subItems.splice(idx, 1);
+  addSubItem._rerender = true;
+  const container = document.getElementById('subItemsList');
+  const items = stepData[stepId]._subItems;
+  container.innerHTML = items.length ? items.map((item, i) => `
+    <div class="sub-item">
+      <div class="sub-item-header">
+        <span class="sub-item-num">${i+1}</span>
+        <strong class="sub-item-name">${item.name}</strong>
+        <button class="preview-remove" style="position:static;width:22px;height:22px" onclick="removeSubItem(${i})">✕</button>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">มูลค่า (บาท)</label>
+          <input type="number" class="field-input" id="sub_amount_${i}" value="${item.amount||''}" placeholder="0.00">
+        </div>
+        <div class="field-group">
+          <label class="field-label">หมายเหตุ</label>
+          <input type="text" class="field-input" id="sub_note_${i}" value="${item.note||''}" placeholder="รายละเอียด">
+        </div>
+      </div>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:8px 0">ยังไม่มีหัวข้อ</div>';
+}
+}
+
+function toggleStep(stepId) {
+  const item = document.getElementById(`step_${stepId}`);
+  if (item.classList.contains('completed')) return;
+  const isOpen = item.classList.contains('open');
+
+  // Close all first
+  document.querySelectorAll('.step-item.open').forEach(el => el.classList.remove('open'));
+
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ════════════════════════════════════════════════════════
+   IMAGE HANDLING
+════════════════════════════════════════════════════════ */
+const imageStore = {}; // stepId -> [{ file, url }]
+const pdfStore = {};   // stepId -> [{ file, name, size }]  ← array แทน single
+
+function handleImages(stepId, input) {
+  if (!imageStore[stepId]) imageStore[stepId] = [];
+  Array.from(input.files).forEach(file => {
+    const url = URL.createObjectURL(file);
+    imageStore[stepId].push({ file, url });
+  });
+  renderPreviews(stepId);
+  input.value = '';
+}
+
+function handleMultiPdf(stepId, input) {
+  if (!pdfStore[stepId]) pdfStore[stepId] = [];
+  Array.from(input.files).forEach(file => {
+    pdfStore[stepId].push({ file, name: file.name, size: file.size });
+  });
+  renderPdfList(stepId);
+  input.value = '';
+}
+
+function renderPdfList(stepId) {
+  const container = document.getElementById(`pdfList_${stepId}`);
+  if (!container) return;
+  const pdfs = pdfStore[stepId] || [];
+  container.innerHTML = pdfs.map((pdf, i) => {
+    const sizeMB = (pdf.size / 1024 / 1024).toFixed(2);
+    return `<div class="pdf-preview-item">
+      <span class="pdf-icon">📄</span>
+      <div class="pdf-info">
+        <div class="pdf-name">${pdf.name}</div>
+        <div class="pdf-size">${sizeMB} MB</div>
+      </div>
+      <button class="preview-remove" style="position:static;width:24px;height:24px;font-size:13px" onclick="removePdf('${stepId}',${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removePdf(stepId, idx) {
+  if (pdfStore[stepId]) pdfStore[stepId].splice(idx, 1);
+  renderPdfList(stepId);
+}
+
+function renderPreviews(stepId) {
+  const container = document.getElementById(`preview_${stepId}`);
+  const imgs = imageStore[stepId] || [];
+  container.innerHTML = imgs.map((img, i) => `
+    <div class="preview-item">
+      <img src="${img.url}" alt="preview">
+      <button class="preview-remove" onclick="removeImage('${stepId}', ${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeImage(stepId, idx) {
+  imageStore[stepId].splice(idx, 1);
+  renderPreviews(stepId);
+}
+
+/* ════════════════════════════════════════════════════════
+   SAVE / SUBMIT STEP
+════════════════════════════════════════════════════════ */
+function collectStepValues(step) {
+  const vals = {};
+  step.fields.forEach(f => {
+    const el = document.getElementById(`${step.id}_${f.key}`);
+    if (el) vals[f.key] = el.value;
+  });
+  return vals;
+}
+
+async function saveStepDraft(stepId) {
+  const step = WORK_STEPS.find(s => s.id === stepId);
+  const vals = collectStepValues(step);
+  stepData[stepId] = { ...vals };
+  toast('บันทึกร่างแล้ว', 'success');
+}
+
+async function submitStep(stepId) {
+  const step = WORK_STEPS.find(s => s.id === stepId);
+  const vals = collectStepValues(step);
+  const images = imageStore[stepId] || [];
+
+  showLoading('กำลังบันทึก...');
+
+  try {
+    let imageUrls = [];
+    let pdfUrls = [];
+
+    // Collect sub items ถ้าเป็น step quotation_sub
+    if (stepId === 'quotation_sub') {
+      const items = (stepData['quotation_sub'] || {})._subItems || [];
+      items.forEach((item, i) => {
+        const amtEl = document.getElementById(`sub_amount_${i}`);
+        const noteEl = document.getElementById(`sub_note_${i}`);
+        item.amount = amtEl ? amtEl.value : item.amount;
+        item.note = noteEl ? noteEl.value : item.note;
+      });
+      vals._subItems = JSON.stringify(items);
+    }
+
+    // Upload PDFs (หลายไฟล์)
+    const pdfs = pdfStore[stepId] || [];
+    if (pdfs.length > 0 && !GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
+      for (let i = 0; i < pdfs.length; i++) {
+        document.getElementById('loadingText').textContent = `อัปโหลด PDF ${i+1}/${pdfs.length}...`;
+        const b64 = await fileToBase64(pdfs[i].file);
+        const res = await callGAS('uploadPdf', {
+          token: currentUser.token, projectId: currentProject.id,
+          stepId, filename: pdfs[i].name, mimeType: 'application/pdf', data: b64
+        });
+        if (res.ok) pdfUrls.push(res.url);
+      }
+    } else if (pdfs.length > 0) {
+      pdfUrls = pdfs.map(p => '[demo_pdf: ' + p.name + ']');
+    }
+
+    // Upload images
+    if (images.length > 0 && !GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
+      showLoading(`กำลังอัปโหลดรูป (0/${images.length})...`);
+      for (let i = 0; i < images.length; i++) {
+        document.getElementById('loadingText').textContent = `อัปโหลดรูป ${i+1}/${images.length}...`;
+        const b64 = await fileToBase64(images[i].file);
+        const res = await callGAS('uploadImage', {
+          token: currentUser.token,
+          projectId: currentProject.id,
+          stepId,
+          filename: images[i].file.name,
+          mimeType: images[i].file.type,
+          data: b64
+        });
+        if (res.ok) imageUrls.push(res.url);
+      }
+    } else if (images.length > 0) {
+      imageUrls = images.map((_,i) => `[demo_image_${i+1}]`);
+    }
+
+    // Save step data
+    const payload = {
+      token: currentUser.token,
+      projectId: currentProject.id,
+      stepId,
+      fields: vals,
+      imageUrls,
+      timestamp: new Date().toISOString(),
+      submittedBy: currentUser.name
+    };
+
+    if (!GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
+      const res = await callGAS('submitStep', payload);
+      if (!res.ok) throw new Error(res.message);
+    }
+
+    stepData[stepId] = { ...vals, _done: true, imageUrls, pdfUrls };
+    delete imageStore[stepId];
+    delete pdfStore[stepId];
+
+    renderSteps();
+    updateProgressBar();
+    toast(`✅ บันทึก "${step.name}" สำเร็จ`, 'success');
+
+  } catch (e) {
+    toast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   PROGRESS BAR
+════════════════════════════════════════════════════════ */
+function updateProgressBar() {
+  const userRole = currentUser.role;
+  const visibleSteps = WORK_STEPS.filter(s => s.role.includes(userRole));
+  const doneCount = visibleSteps.filter(s => stepData[s.id]?._done).length;
+  const pct = visibleSteps.length ? Math.round(doneCount / visibleSteps.length * 100) : 0;
+
+  document.getElementById('progressBarFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+/* ════════════════════════════════════════════════════════
+   KEYBOARD ENTER on LOGIN
+════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginScreen').classList.contains('active')) {
+    doLogin();
+  }
+});
+</script>
+</body>
+</html>
