@@ -953,7 +953,7 @@ body::before {
 /* ════════════════════════════════════════════════════════
    CONFIG — แก้ GAS_URL ตรงนี้
 ════════════════════════════════════════════════════════ */
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxyMPizddvv8dohXnPm1drXRkjIZRx8OrkBFysLxiqIf1GVmIRByhWg-gHn_e5u_YNMJQ/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyhLvrAoM30UN1kBT2Pss1uBR-958qbCPXIA_1AfVERyfGUWxTDzQZY8zgTCffTccdX8w/exec";
 
 /* ════════════════════════════════════════════════════════
    WORK STEPS DEFINITION (ปรับได้ตามต้องการ)
@@ -1094,68 +1094,63 @@ function toast(msg, type = 'info') {
 }
 
 async function callGAS(action, payload = {}) {
-  // actions ที่ต้องการ response กลับ → ใช้ JSONP
-  const jsonpActions = ['login','getProjects','getProgress','getDashboard','getCompanies'];
-
-  if (jsonpActions.includes(action)) {
-    return callGAS_JSONP(action, payload);
-  } else {
-    // submitStep, uploadImage, uploadPdf → ใช้ fetch no-cors (fire and trust)
-    return callGAS_POST(action, payload);
+  const body = JSON.stringify({ action, ...payload });
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body
+    });
+    // no-cors ไม่คืน body — ใช้ JSONP สำหรับ actions ที่ต้องการ response
+    return { ok: true, _nocors: true };
+  } catch(e) {
+    throw new Error('Network error: ' + e.message);
   }
 }
 
-function callGAS_JSONP(action, payload) {
+// JSONP สำหรับ actions ที่ต้องการ response กลับ
+function callGAS_read(action, payload = {}) {
   return new Promise((resolve, reject) => {
-    const cbName = 'gasCallback_' + Date.now();
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     const data = encodeURIComponent(JSON.stringify({ action, ...payload }));
+    const url = GAS_URL + '?callback=' + cbName + '&data=' + data;
+
+    if (url.length > 7500) {
+      reject(new Error('Payload too large for JSONP'));
+      return;
+    }
+
     const script = document.createElement('script');
+    let done = false;
+
     window[cbName] = (result) => {
+      done = true;
       delete window[cbName];
       try { document.body.removeChild(script); } catch(e) {}
       resolve(result);
     };
+
     script.onerror = () => {
+      if (done) return;
+      done = true;
       delete window[cbName];
       try { document.body.removeChild(script); } catch(e) {}
-      reject(new Error('Network error'));
+      reject(new Error('Script load error'));
     };
-    script.src = GAS_URL + '?callback=' + cbName + '&data=' + data;
+
+    script.src = url;
     document.body.appendChild(script);
+
     setTimeout(() => {
-      if (window[cbName]) {
+      if (!done) {
+        done = true;
         delete window[cbName];
         try { document.body.removeChild(script); } catch(e) {}
-        reject(new Error('Request timeout'));
+        reject(new Error('Timeout'));
       }
-    }, 30000);
+    }, 20000);
   });
-}
-
-async function callGAS_POST(action, payload) {
-  // ส่งผ่าน JSONP แต่แยก fields ออกเป็น string ย่อๆ
-  // สำหรับ submitStep — ส่ง fields แบบ JSON string ใน URL
-  const body = { action, ...payload };
-
-  // ถ้า payload ใหญ่เกิน 6000 chars → ใช้ no-cors fetch (ไม่ได้ response กลับ)
-  const dataStr = encodeURIComponent(JSON.stringify(body));
-  if (dataStr.length < 6000) {
-    return callGAS_JSONP(action, payload);
-  }
-
-  // ใหญ่เกิน → ใช้ fetch no-cors แล้วสมมติว่า ok
-  try {
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(body)
-    });
-    return { ok: true, message: 'บันทึกแล้ว (no-cors)' };
-  } catch(e) {
-    // no-cors มักจะ throw แต่ GAS อาจได้รับแล้ว
-    return { ok: true, message: 'ส่งแล้ว' };
-  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1190,7 +1185,7 @@ async function doLogin() {
       if (!found || found.password !== p) throw new Error('username หรือ password ไม่ถูกต้อง');
       currentUser = { username: u, name: found.name, role: found.role, token: 'demo_' + u };
     } else {
-      const res = await callGAS('login', { username: u, password: p });
+      const res = await callGAS_read('login', { username: u, password: p });
       if (!res.ok) throw new Error(res.message || 'เข้าสู่ระบบไม่สำเร็จ');
       currentUser = res.user;
       localStorage.setItem('cpToken', res.user.token);
@@ -1243,10 +1238,9 @@ async function loadProjects() {
   let projects = [];
   try {
     if (GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
-      // Demo projects
       projects = getDemoProjects(currentUser.role);
     } else {
-      const res = await callGAS('getProjects', { token: currentUser.token });
+      const res = await callGAS_read('getProjects', { token: currentUser.token });
       if (!res.ok) throw new Error(res.message);
       projects = res.projects;
     }
@@ -1314,7 +1308,7 @@ async function showProgressSection() {
   // Load existing step data
   try {
     if (!GAS_URL.includes('YOUR_GAS_SCRIPT_ID')) {
-      const res = await callGAS('getProgress', { token: currentUser.token, projectId: currentProject.id });
+      const res = await callGAS_read('getProgress', { token: currentUser.token, projectId: currentProject.id });
       if (res.ok && res.steps) stepData = res.steps;
     }
   } catch (e) { /* ignore */ }
