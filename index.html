@@ -1053,14 +1053,17 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
 }
 
-async function callGAS(action, payload = {}) {
+aasync function callGAS(action, payload = {}) {
   const body = JSON.stringify({ action, ...payload });
+  const url = GAS_URL + "?callback=_";
   const res = await fetch(GAS_URL, {
     method: 'POST',
+    mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body
   });
-  return await res.json();
+  // no-cors ไม่คืน body — ใช้ GET + params แทนสำหรับ login
+  return { ok: false, _nocors: true };
 }
 
 /* ════════════════════════════════════════════════════════
